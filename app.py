@@ -49,6 +49,26 @@ async def start_liveness_session():
         raise HTTPException(status_code=500, detail=f"❌ Error: {str(e)}")
 
 
+@app.post("/process_liveness/")
+async def process_liveness(data: dict):
+    session_id = data.get("session_id")
+
+    try:
+        # Initialize AWS client with server-side credentials
+        rekognition = boto3.client("rekognition")
+
+        # Send liveness check request to AWS
+        response = rekognition.start_face_liveness_session(
+            SessionId=session_id,
+            # Add other required AWS parameters
+        )
+
+        return {"status": "Liveness check started"}
+
+    except Exception as e:
+        raise HTTPException(500, detail=str(e))
+
+
 @app.get("/get_liveness_result/")
 async def get_liveness_result(session_id: str):
     try:
