@@ -12,11 +12,10 @@ COPY . /app
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Expose FastAPI port
-EXPOSE 8000
 
 ENV AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
 ENV AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
 ENV AWS_REGION=${AWS_REGION}
 
 # Run FastAPI
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "${PORT}"]
