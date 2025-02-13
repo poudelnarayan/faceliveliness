@@ -1,7 +1,8 @@
 import boto3
 import os
-from fastapi import FastAPI, File, UploadFile
 import time
+import uuid
+from fastapi import FastAPI, File, UploadFile
 
 app = FastAPI()
 
@@ -31,29 +32,31 @@ def home():
 @app.post("/detect_liveliness/")
 async def detect_liveliness(video: UploadFile = File(...)):
     try:
-        video_bytes = await video.read()
+        # Generate a unique session ID
+        session_id = str(uuid.uuid4())
 
-        # Call AWS Rekognition Liveliness Detection API
-        response = rekognition_client.start_face_liveness_session(
-            Video={'Bytes': video_bytes}
+        # Create a liveliness session
+        response = rekognition_client.create_face_liveness_session(
+            ClientRequestToken=session_id
         )
 
         session_id = response["SessionId"]
         print(f"✅ Liveliness Session Started: {session_id}")
 
-        # Wait for results
-        time.sleep(10)  # AWS takes time to process
+        # Wait for AWS to process the session
+        time.sleep(10)
 
-        # Get results
+        # Get the session results
         result = rekognition_client.get_face_liveness_session_results(
             SessionId=session_id
         )
 
-        is_live = result["Confidence"] > 85  # Confidence threshold
+        is_live = result.get("Confidence", 0) > 85  # Confidence threshold
 
         return {
+            "session_id": session_id,
             "liveliness_detected": is_live,
-            "confidence": result["Confidence"]
+            "confidence": result.get("Confidence", 0)
         }
 
     except Exception as e:
